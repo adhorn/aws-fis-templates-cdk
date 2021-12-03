@@ -15,14 +15,14 @@ These templates let you perform fault injection experiments on resources (applic
 ###  [EC2 Instance faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/ec2-instance-faults)
 - Including:
     - Stopping and restarting (after duration) all EC2 instances in a VPC, an AZ, and with particular tags.
-    - Inject CPU stress on random EC2 instances in a VPC
-    - Inject Latency on random EC2 instances all EC2 instances in a VPC, an AZ, and with particular tags.
+    - Injecting CPU stress on random EC2 instances in a VPC
+    - Injecting latency on random EC2 instances all EC2 instances in a VPC, an AZ, and with particular tags.
 
 ### [EC2 Control Plane faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/ec2-control-plane-faults)
 - Including:
-    - Inject EC2 API Internal Error on the target IAM role
-    - Inject EC2 API Internal Error on the target IAM role
-    - Inject EC2 API Internal Error on the target IAM role
+    - Injecting EC2 API Internal Error on the target IAM role
+    - Injecting EC2 API Throttle Error on the target IAM role
+    - Injecting EC2 API Unavailable Error on the target IAM role
 
 ### [Auto Scaling Group faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/asg-faults)
 - Including:
@@ -31,7 +31,7 @@ These templates let you perform fault injection experiments on resources (applic
 
 ### [Network Access Control List faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/nacl-faults)
 - Including:
-    - Modify Nacls associated with subnets to deny traffic in a particular AZ.
+    - Modifying Nacls associated with subnets that belong to a particular AZ to deny traffic in that AZ.
 
 ## Prerequisites:
 
