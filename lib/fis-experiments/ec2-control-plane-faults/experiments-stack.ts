@@ -11,26 +11,7 @@ export class Ec2ControlPlaneExperiments extends Stack {
     // Import FIS Role and Stop Condition
     const importedFISRoleArn = cdk.Fn.importValue('FISIamRoleArn');
     const importedStopConditionArn = cdk.Fn.importValue('StopConditionArn');
-
-    // Variables you may want to change based on your environment
-    const vpcId = new cdk.CfnParameter(this, 'vpcId', {
-      type: 'String',
-      description: 'The vpcId in which to inject fault',
-      default: 'vpc-01316e63b948d889d',
-    });
-
-    // if vpcID parameter is in cdk.json us the below
-    // const vpcId = this.node.tryGetContext('vpc_id');
-    console.log('vpcId: ', vpcId.valueAsString);
     
-    const availabilityZones = Stack.of(this).availabilityZones;
-
-    console.log('availability zones: ', Stack.of(this).availabilityZones);
-
-    const randomAvailabilityZone = availabilityZones[Math.floor(Math.random() * availabilityZones.length)];
-    console.log('random availability zone: ', randomAvailabilityZone);
-    // const randomAvailabilityZone = 'us-east-1a'
-
     // Targets
     const TargetIAMRole: fis.CfnExperimentTemplate.ExperimentTemplateTargetProperty = {
       resourceType: 'aws:iam:role',

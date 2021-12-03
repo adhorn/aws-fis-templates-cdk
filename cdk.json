@@ -9,6 +9,8 @@
     "@aws-cdk/aws-kms:defaultKeyPolicies": true,
     "@aws-cdk/aws-s3:grantWriteWithoutAcl": true,
     "@aws-cdk/aws-ecs-patterns:removeDefaultDesiredCount": true,
-    "@aws-cdk/aws-rds:lowercaseDbIdentifier": true
+    "@aws-cdk/aws-rds:lowercaseDbIdentifier": true,
+    "vpc_id": "vpc-01316e63b948d889d",
+    "asg_name": "Test-FIS-ASG"
   }
 }

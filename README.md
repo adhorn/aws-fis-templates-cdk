@@ -1,4 +1,4 @@
-# Chaos Engineering with AWS Fault Injection Simulator (FIS) 
+# Chaos Engineering Templates for AWS Fault Injection Simulator (FIS) 
 
 
 ![Issues](https://img.shields.io/github/issues/adhorn/aws-fis-templates-cdk)
@@ -10,11 +10,40 @@
 
 These templates let you perform fault injection experiments on resources (applications, network, and infrastructure) in the [AWS Cloud](https://aws.amazon.com).
 
+## Currently available
+
+###  [EC2 Instance faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/ec2-instance-faults)
+- Including:
+    - Stopping and restarting (after duration) all EC2 instances in a VPC, an AZ, and with particular tags.
+    - Inject CPU stress on random EC2 instances in a VPC
+    - Inject Latency on random EC2 instances all EC2 instances in a VPC, an AZ, and with particular tags.
+
+### [EC2 Control Plane faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/ec2-control-plane-faults)
+- Including:
+    - Inject EC2 API Internal Error on the target IAM role
+    - Inject EC2 API Internal Error on the target IAM role
+    - Inject EC2 API Internal Error on the target IAM role
+
+### [Auto Scaling Group faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/asg-faults)
+- Including:
+    - Stopping and restarting (after duration) all EC2 instances of a random AZ in a particular auto scaling group.
+
+
+### [Network Access Control List faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/nacl-faults)
+- Including:
+    - Modify Nacls associated with subnets to deny traffic in a particular AZ.
+
 ## Prerequisites:
 
 -   [What is AWS Fault Injection Simulator?](https://docs.aws.amazon.com/fis/latest/userguide/what-is.html)
 -   [Experiment templates for AWS FIS](https://docs.aws.amazon.com/fis/latest/userguide/experiment-templates.html)
 -   [How AWS Fault Injection Simulator works with IAM](https://docs.aws.amazon.com/fis/latest/userguide/security_iam_service-with-iam.html)
+
+## Configuration:
+The current CDK uses default values for some of the configuration parameters, such as a `vpc_id` and `asg_name`. 
+Modify these in the file `cdk.json` before deploying to reflect your AWS environment. 
+
+
 
 
 ## Deploy via CDK:

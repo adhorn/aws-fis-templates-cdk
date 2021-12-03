@@ -12,12 +12,16 @@ export class AsgExperiments extends Stack {
     const importedStopConditionArn = cdk.Fn.importValue('StopConditionArn');
 
     // Variables you may want to change based on your environment
-    const asgName = new cdk.CfnParameter(this, 'asgName', {
-      type: 'String',
-      description: 'The auto scaling group name in which to inject fault',
-      default: 'Test-FIS-ASG',
-    });
-    console.log('asgName: ', asgName.valueAsString);
+    // const asgName = new cdk.CfnParameter(this, 'asgName', {
+    //   type: 'String',
+    //   description: 'The auto scaling group name in which to inject fault',
+    //   default: 'Test-FIS-ASG',
+    // });
+    //console.log('asgName: ', asgName.valueAsString);
+    
+    // if asg_name parameter is in cdk.json us the below
+    const asgName = this.node.tryGetContext('asg_name');
+    console.log('asgName: ', asgName.toString());
 
     const availabilityZones = Stack.of(this).availabilityZones;
     console.log('availability zones: ', Stack.of(this).availabilityZones);
@@ -31,7 +35,7 @@ export class AsgExperiments extends Stack {
       resourceType: 'aws:ec2:instance',
       selectionMode: 'ALL',
       resourceTags: {
-        'aws:autoscaling:groupName': asgName.valueAsString
+        'aws:autoscaling:groupName': asgName.toString()
       },
       filters:  [
           {

@@ -1,12 +1,63 @@
 ---
-description: Modify Subnets to deny traffic in a particular AZ. Rollback on Cancel or Failure.
+
+  #==================================================
+  # SSM Automation Document / Runbook:
+  # Defines the configuration as well as the
+  # the steps to be run by SSM Automation
+  #==================================================
+
+description: |
+  ### Document Name - NACL-FIS-Automation
+
+  ## What does this document do?
+  This document modifies the subnets of a particular VPC to deny traffic in the Subnets associated with a particular AZ. Rollback on Cancel or Failure. 
+
+  ## Security Risk
+  Low: This fault does not change the security posture of the VPC since by default the NACL created denies all traffic in the subnet associated with an AZ. It can also easily manually rolled back if necessary since the created NACL is tagged for easy identification.
+
+  ## Input Parameters
+  * AutomationAssumeRole: (Optional) The ARN of the role that allows Automation to perform the actions on your behalf.
+  * VPCId: (Required) The ID of the VPC where the subnet reside.
+  * AvailabilityZone: (Required) The Availability Zone to impact
+  * Duration: (Optional) ** Default 1 minute ** Maximum duration the fault can exist for.
+
+  ## Supports Rollback
+  Yes. The Nacl association is reverted.
+
+  ## Cancellation behaviour
+  The Nacl association is reverted.   
+
+  ## Output Parameters
+  This document has no outputs.
+
+  ## Minimum Permissions Required
+  * `ec2:RevokeSecurityGroupIngress`
+  * `ec2:AuthorizeSecurityGroupIngress`
+  * `ec2:DescribeSecurityGroups`
+  * `ec2:DescribeInstances``
+  * `ec2:DescribeInstanceStatus`
+  * `ec2:TerminateInstances`
+  * `autoscaling:DescribeAutoScalingGroups`
+
+  ## Additional Permissions for logging
+  * logs:CreateLogStream
+  * logs:CreateLogGroup
+  * logs:PutLogEvents
+  * logs:DescribeLogGroups
+  * logs:DescribeLogStreams
+
 schemaVersion: '0.3'
+
+#==================================================
+# Role assumed my the automation document / runbook
+#==================================================
 assumeRole: "{{ AutomationAssumeRole }}"
+
+#==================================================
+# SSM automation document parameters
+#==================================================
+
 parameters:
-  Region:
-    type: String
-    description: "The Region to impact"
-    default: "us-east-1"
   AvailabilityZone:
     type: String
     description: "(Required) The Availability Zone to impact"
@@ -14,7 +65,6 @@ parameters:
   VPCId:
     type: String
     description: "The ID of the VPC where the subnet reside"
-    default: "vpc-01316e63b948d889d"
   Duration:
     type: String
     description: "The duration - in ISO-8601 format - of the attack. (Required)"
@@ -23,6 +73,11 @@ parameters:
     type: String
     description: "(Optional) The ARN of the role that allows Automation to perform
       the actions on your behalf."
+
+#==================================================
+# Automation steps
+#==================================================
+
 mainSteps:
 - name: InjectFaultNacl
   onFailure: 'step:rollback'
@@ -32,8 +87,6 @@ mainSteps:
     Runtime: python3.6
     Handler: inject_fault
     InputPayload:
-      region:
-        - "{{ Region }}"
       az_name:
         - "{{ AvailabilityZone }}"
       vpc_id:
@@ -158,13 +211,11 @@ mainSteps:
 
         def inject_fault(events, context):
 
-            region = events['region'][0]
             az_name = events['az_name'][0]
             vpc_id = events['vpc_id'][0]
 
             logger = logging.getLogger(__name__)
-            logger.info('Setting up ec2 client for region %s ', region)
-            ec2_client = boto3.client('ec2', region_name=region)
+            ec2_client = boto3.client('ec2')
             chaos_nacl_id = create_chaos_nacl(ec2_client, vpc_id)
             subnets_to_chaos = get_subnets_to_chaos(ec2_client, vpc_id, az_name)
             nacl_ids = get_nacls_to_chaos(ec2_client, subnets_to_chaos)
@@ -194,8 +245,6 @@ mainSteps:
     Runtime: python3.6
     Handler: rollback
     InputPayload:
-      region:
-        - "{{ Region }}"
       rollback:
         - "{{ InjectFaultNacl.Rollback }}"
       chaos_nacl:
@@ -206,11 +255,10 @@ mainSteps:
 
         def rollback(events, context):
             save_for_rollback = events['rollback']
-            region = events['region'][0]
 
             logger = logging.getLogger(__name__)
             logger.info('Rolling back Network ACL to original configuration')
-            ec2_client = boto3.client('ec2', region_name=region)
+            ec2_client = boto3.client('ec2')
 
             # Rollback the initial association
             for conf in save_for_rollback:

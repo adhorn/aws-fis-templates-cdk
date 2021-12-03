@@ -27,16 +27,16 @@ export class NaclExperiments extends Stack {
     const importedStopConditionArn = cdk.Fn.importValue('StopConditionArn');
 
     // Variables you may want to change based on your environment
-    const vpcId = new cdk.CfnParameter(this, 'vpcId', {
-      type: 'String',
-      description: 'The vpcId in which to inject fault',
-      default: 'vpc-01316e63b948d889d',
-    });
+    // const vpcId = new cdk.CfnParameter(this, 'vpcId', {
+    //   type: 'String',
+    //   description: 'The vpcId in which to inject fault',
+    //   default: 'vpc-01316e63b948d889d',
+    // });
 
 
     // if vpcID parameter is in cdk.json us the below
-    // const vpcId = this.node.tryGetContext('vpc_id');
-    console.log('vpcId: ', vpcId.valueAsString);
+    const vpcId = this.node.tryGetContext('vpc_id');
+    console.log('vpcId: ', vpcId.toString());
     
     const availabilityZones = Stack.of(this).availabilityZones;
 
@@ -56,9 +56,8 @@ export class NaclExperiments extends Stack {
         documentArn: `arn:aws:ssm:${this.region}:${this.account}:document/NACL-FIS-Automation`,
         documentParameters: JSON.stringify(
           { 
-            Region: this.region,
             AvailabilityZone: randomAvailabilityZone.toString(),
-            VPCId: vpcId.valueAsString,
+            VPCId: vpcId.toString(),
             Duration: 'PT1M',
             AutomationAssumeRole: importedSSMANaclRoleArn.toString()
           } 
