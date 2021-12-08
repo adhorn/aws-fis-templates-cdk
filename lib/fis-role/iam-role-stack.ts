@@ -7,6 +7,9 @@ export class FisRole extends Stack {
     constructor(scope: Construct, id: string, props?: StackProps) {
       super(scope, id, props);
 
+      const importedFISLogGroupArn = cdk.Fn.importValue('fisLogGroupArn');
+      const importedFISS3BucketArn = cdk.Fn.importValue('fisS3BucketArn');
+
         // FIS Role
         const fisrole = new iam.Role(this, 'fis-role', {
         assumedBy: new iam.ServicePrincipal('fis.amazonaws.com'),
@@ -158,7 +161,7 @@ export class FisRole extends Stack {
         //AllowFISExperimentRoleEC2ControlPlaneActions
         fisrole.addToPolicy( new iam.PolicyStatement({
         resources: [
-            `arn:aws:fis:*:*:experiment/*`
+            'arn:aws:fis:*:*:experiment/*'
         ],
         actions: [
             'fis:InjectApiInternalError',
@@ -166,6 +169,52 @@ export class FisRole extends Stack {
             'fis:InjectApiUnavailableError'
         ],
         }))
+
+        //AllowLogsRoleAllLogdelivery
+        fisrole.addToPolicy( new iam.PolicyStatement({
+            resources: [
+                '*'
+            ],
+            actions: [
+                "logs:CreateLogDelivery"
+            ]
+        }))
+
+        //AllowLogsRoleS3
+        fisrole.addToPolicy( new iam.PolicyStatement({
+            resources: [
+                importedFISS3BucketArn.toString()
+            ],
+            actions: [
+                's3:GetBucketPolicy',
+                's3:PutBucketPolicy'
+            ]
+        }))
+
+        //AllowLogsRoleCloudWatch
+        fisrole.addToPolicy( new iam.PolicyStatement({
+            resources: [
+                '*'
+            ],
+            actions: [
+                "logs:PutResourcePolicy",
+                "logs:DescribeResourcePolicies",
+                "logs:DescribeLogGroups",
+            ]
+        }))
+
+        //AllowLogsRoleKinesis
+        fisrole.addToPolicy( new iam.PolicyStatement({
+            resources: [
+                '*'
+            ],
+            actions: [
+                "firehose:TagDeliveryStream",
+                "iam:CreateServiceLinkedRole"
+            ]
+        }))
+
+
 
         // SSMA Role for SSMA Documents fault
         // NACL faults 'ssma-nacl-faults.yml'
