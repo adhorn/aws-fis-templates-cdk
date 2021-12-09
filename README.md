@@ -1,14 +1,10 @@
-# Chaos Engineering Templates for AWS Fault Injection Simulator (FIS) 
-
-
 ![Issues](https://img.shields.io/github/issues/adhorn/aws-fis-templates-cdk)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://gitHub.com/adhorn/aws-fis-templates-cdk/graphs/commit-activity)
 [![Twitter](https://img.shields.io/twitter/url/https/github.com/adhorn/aws-fis-experiment-templates?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fgithub.com%2Fadhorn%2Faws-fis-templates-cdk)
 
+# Templates for AWS Fault Injection Simulator (FIS) 
 
-# Collection of ready-made [AWS FIS Experiment Templates](https://docs.aws.amazon.com/fis/latest/userguide/experiment-templates.html) defined using the CDK.
-
-These templates let you perform fault injection experiments on resources (applications, network, and infrastructure) in the [AWS Cloud](https://aws.amazon.com).
+These [templates](https://docs.aws.amazon.com/fis/latest/userguide/experiment-templates.html) let you perform fault injection experiments on resources (applications, network, and infrastructure) in the [AWS Cloud](https://aws.amazon.com).
 
 ## What is AWS FIS anyway?
 
