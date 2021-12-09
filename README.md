@@ -74,7 +74,7 @@ Once you are familiar with the `stop-condition`, you should of course update the
 You first need to install the AWS CDK as described [here](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html) - typically using:
 
 ```
-npm install -g aws-cdk@1.x
+npm install -g aws-cdk@2.x
 ```
 
 You then must configure your workstation with your credentials and an AWS region, if you have not already done so. If you have the AWS CLI installed, the easiest way to satisfy this requirement is issue the following command:
