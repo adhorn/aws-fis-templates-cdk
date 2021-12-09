@@ -47,7 +47,7 @@ To use AWS FIS, you set up and run experiments that help you create the real-wor
     - Modifying Nacls associated with subnets that belong to a particular AZ to deny traffic in that AZ.
 
 ### Configuration:
-These sample experiments uses default values for some of the parameters, such as a `vpc_id` and `asg_name`. 
+These sample FIS experiments uses default values for some of the parameters, such as a `vpc_id` and `asg_name`. 
 Modify these in the file `cdk.json` before deploying to reflect your own AWS environment.
 You can also specify your own tags for filtering EC2 instances. The currently used ones are defined as:
 ```
@@ -69,15 +69,25 @@ Once you are familiar with the `stop-condition`, you should of course update the
 
 
 
-## Deploy via CDK:
+## Deploy this package via CDK:
+
+You first need to install the AWS CDK as described [here](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html) - typically using:
+
+```
+npm install -g aws-cdk@1.x
+```
+
+You then must configure your workstation with your credentials and an AWS region, if you have not already done so. If you have the AWS CLI installed, the easiest way to satisfy this requirement is issue the following command:
+
+```
+aws configure
+```
+Finally, you can deploy these FIS experiments using the CDK as follows:
 
 ```bash
 npm install
 cdk deploy
 ```
-
-
-
 
 ### Other useful CDK commands:
 
