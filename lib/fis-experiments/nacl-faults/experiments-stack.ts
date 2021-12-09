@@ -1,10 +1,11 @@
-import * as cdk from '@aws-cdk/core';
-import { Construct, Stack, StackProps } from '@aws-cdk/core';
-import * as fis from '@aws-cdk/aws-fis';
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import { StackProps, Stack } from 'aws-cdk-lib';                 // core constructs
+import { aws_fis as fis } from 'aws-cdk-lib'; 
+import { aws_ssm as ssm } from 'aws-cdk-lib'; 
 import fs = require('fs');
 import path = require('path');
-
-import { Document } from 'cdk-ssm-document';
+import yaml = require('js-yaml');
 
 export class NaclExperiments extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -15,10 +16,14 @@ export class NaclExperiments extends Stack {
       __dirname,
       '../../../documents/ssma-nacl-faults.yml'
     );
-    const doc = new Document(this, `SSM-Document-Automation`, {
+
+    const content = fs.readFileSync(file).toString()
+
+    const cfnDocument = new ssm.CfnDocument(this, `SSM-Document-Automation`, {
+      content: yaml.load(content),
       documentType: 'Automation',
+      documentFormat: 'YAML',
       name: 'NACL-FIS-Automation',
-      content: fs.readFileSync(file).toString(),
     });
 
     // Import FIS Role and Stop Condition

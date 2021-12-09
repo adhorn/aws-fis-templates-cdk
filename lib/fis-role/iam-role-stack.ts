@@ -1,7 +1,7 @@
-import * as cdk from '@aws-cdk/core';
-import { Construct, Stack, StackProps } from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as regionInfo from '@aws-cdk/region-info';
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import { StackProps, Stack } from 'aws-cdk-lib';                 // core constructs
+import { aws_iam as iam } from 'aws-cdk-lib'; 
 
 export class FisRole extends Stack {
     constructor(scope: Construct, id: string, props?: StackProps) {
