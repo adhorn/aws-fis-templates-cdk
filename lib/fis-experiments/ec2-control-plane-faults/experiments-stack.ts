@@ -1,18 +1,17 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { StackProps, Stack } from 'aws-cdk-lib';                 // core constructs
-import { aws_fis as fis } from 'aws-cdk-lib'; 
+import { StackProps, Stack } from 'aws-cdk-lib';
+import { aws_fis as fis } from 'aws-cdk-lib';
 
 // FIS Experiment Templates for EC2 control plane
-
 export class Ec2ControlPlaneExperiments extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
-        
+
     // Import FIS Role and Stop Condition
     const importedFISRoleArn = cdk.Fn.importValue('FISIamRoleArn');
     const importedStopConditionArn = cdk.Fn.importValue('StopConditionArn');
-    
+
     // Targets
     const TargetIAMRole: fis.CfnExperimentTemplate.ExperimentTemplateTargetProperty = {
       resourceType: 'aws:iam:role',
@@ -21,7 +20,6 @@ export class Ec2ControlPlaneExperiments extends Stack {
         `arn:aws:iam::${this.account}:role/Chaos-Ready`
       ]
     }
-
 
     // Actions
     const internalError = {
@@ -33,7 +31,9 @@ export class Ec2ControlPlaneExperiments extends Stack {
         percentage: '100',
         duration: 'PT2M'
       },
-      targets: { Roles: 'roleTargets' }
+      targets: {
+        Roles: 'roleTargets'
+      }
     }
 
     const throttleError = {
@@ -45,7 +45,9 @@ export class Ec2ControlPlaneExperiments extends Stack {
         percentage: '100',
         duration: 'PT2M'
       },
-      targets: { Roles: 'roleTargets' }
+      targets: {
+        Roles: 'roleTargets'
+      }
     }
 
     const unavailableError = {
@@ -57,7 +59,9 @@ export class Ec2ControlPlaneExperiments extends Stack {
         percentage: '100',
         duration: 'PT2M'
       },
-      targets: { Roles: 'roleTargets' }
+      targets: {
+        Roles: 'roleTargets'
+      }
     }
 
     // Experiments
@@ -65,64 +69,69 @@ export class Ec2ControlPlaneExperiments extends Stack {
       {
         description: 'Inject EC2 API Internal Error on the target IAM role (e.g.; Chaos-Ready).',
         roleArn: importedFISRoleArn.toString(),
-        stopConditions: [{
-          source: 'aws:cloudwatch:alarm',
-          value: importedStopConditionArn.toString()
-        }],
-        tags: { 
+        stopConditions: [
+          {
+            source: 'aws:cloudwatch:alarm',
+            value: importedStopConditionArn.toString()
+          }
+        ],
+        tags: {
           Name: 'FIS Experiment',
           Stackname: this.stackName
         },
         actions: {
-          'instanceActions' : internalError
+          'instanceActions': internalError
         },
         targets: {
           'roleTargets': TargetIAMRole
         }
       }
-    );  
+    );
 
     const templateUnavailableError = new fis.CfnExperimentTemplate(this, 'fis-template-inject-unavailable-error',
-    {
-      description: 'Inject EC2 API Internal Error on the target IAM role (e.g.; Chaos-Ready).',
-      roleArn: importedFISRoleArn.toString(),
-      stopConditions: [{
-        source: 'aws:cloudwatch:alarm',
-        value: importedStopConditionArn.toString()
-      }],
-      tags: { 
-        Name: 'FIS Experiment',
-        Stackname: this.stackName
-      },
-      actions: {
-        'instanceActions' : unavailableError
-      },
-      targets: {
-        'roleTargets': TargetIAMRole
+      {
+        description: 'Inject EC2 API Internal Error on the target IAM role (e.g.; Chaos-Ready).',
+        roleArn: importedFISRoleArn.toString(),
+        stopConditions: [
+          {
+            source: 'aws:cloudwatch:alarm',
+            value: importedStopConditionArn.toString()
+          }
+        ],
+        tags: {
+          Name: 'FIS Experiment',
+          Stackname: this.stackName
+        },
+        actions: {
+          'instanceActions': unavailableError
+        },
+        targets: {
+          'roleTargets': TargetIAMRole
+        }
       }
-    }
-  );  
+    );
 
-  const templateThrottleError = new fis.CfnExperimentTemplate(this, 'fis-template-inject-throttle-error',
-  {
-    description: 'Inject EC2 API Internal Error on the target IAM role (e.g.; Chaos-Ready).',
-    roleArn: importedFISRoleArn.toString(),
-    stopConditions: [{
-      source: 'aws:cloudwatch:alarm',
-      value: importedStopConditionArn.toString()
-    }],
-    tags: { 
-      Name: 'FIS Experiment',
-      Stackname: this.stackName
-    },
-    actions: {
-      'instanceActions' : throttleError
-    },
-    targets: {
-      'roleTargets': TargetIAMRole
-    }
-  }
-);  
-
+    const templateThrottleError = new fis.CfnExperimentTemplate(this, 'fis-template-inject-throttle-error',
+      {
+        description: 'Inject EC2 API Internal Error on the target IAM role (e.g.; Chaos-Ready).',
+        roleArn: importedFISRoleArn.toString(),
+        stopConditions: [
+          {
+            source: 'aws:cloudwatch:alarm',
+            value: importedStopConditionArn.toString()
+          }
+        ],
+        tags: {
+          Name: 'FIS Experiment',
+          Stackname: this.stackName
+        },
+        actions: {
+          'instanceActions': throttleError
+        },
+        targets: {
+          'roleTargets': TargetIAMRole
+        }
+      }
+    );
   }
 }

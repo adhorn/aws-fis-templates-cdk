@@ -8,7 +8,7 @@ import { aws_fis as fis } from 'aws-cdk-lib';
 export class Ec2InstancesExperiments extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
-        
+
     // Import FIS Role and Stop Condition
     const importedFISRoleArn = cdk.Fn.importValue('FISIamRoleArn');
     const importedStopConditionArn = cdk.Fn.importValue('StopConditionArn');
@@ -22,13 +22,8 @@ export class Ec2InstancesExperiments extends Stack {
 
     // if vpc_id parameter is in cdk.json us the below
     const vpcId = this.node.tryGetContext('vpc_id');
-    console.log('vpcId: ', vpcId.toString());
-    
     const availabilityZones = Stack.of(this).availabilityZones;
-    console.log('availability zones: ', Stack.of(this).availabilityZones);
-
     const randomAvailabilityZone = availabilityZones[Math.floor(Math.random() * availabilityZones.length)];
-    console.log('random availability zone: ', randomAvailabilityZone);
     // const randomAvailabilityZone = 'us-east-1a'
 
     // Targets
@@ -38,20 +33,20 @@ export class Ec2InstancesExperiments extends Stack {
       resourceTags: {
         'FIS-Ready': 'true'
       },
-      filters:  [
-          {
-            path:'Placement.AvailabilityZone',
-            values: [ randomAvailabilityZone ]
-          },
-          {
-            path:'State.Name',
-            values: [ 'running' ]
-          },
-          {
-            path: "VpcId",
-            "values": [ vpcId.toString() ]
-          }
-        ]
+      filters: [
+        {
+          path: 'Placement.AvailabilityZone',
+          values: [randomAvailabilityZone]
+        },
+        {
+          path: 'State.Name',
+          values: ['running']
+        },
+        {
+          path: "VpcId",
+          "values": [vpcId.toString()]
+        }
+      ]
     }
 
     const TargetRandomInstance: fis.CfnExperimentTemplate.ExperimentTemplateTargetProperty = {
@@ -60,16 +55,16 @@ export class Ec2InstancesExperiments extends Stack {
       resourceTags: {
         'FIS-Ready': 'true'
       },
-      filters:  [
-          {
-            path:'State.Name',
-            values: [ 'running' ]
-          },
-          {
-            path: "VpcId",
-            "values": [ vpcId.toString() ]
-          }
-        ]
+      filters: [
+        {
+          path: 'State.Name',
+          values: ['running']
+        },
+        {
+          path: "VpcId",
+          "values": [vpcId.toString()]
+        }
+      ]
     }
 
     // Actions
@@ -79,11 +74,11 @@ export class Ec2InstancesExperiments extends Stack {
       parameters: {
         documentArn: `arn:aws:ssm:${this.region}::document/AWSFIS-Run-CPU-Stress`,
         documentParameters: JSON.stringify(
-          { 
+          {
             DurationSeconds: '120',
             InstallDependencies: 'True',
             CPU: '0'
-          } 
+          }
         ),
         duration: 'PT2M'
       },
@@ -92,10 +87,10 @@ export class Ec2InstancesExperiments extends Stack {
 
     const stopInstanceAction: fis.CfnExperimentTemplate.ExperimentTemplateActionProperty = {
       actionId: 'aws:ec2:stop-instances',
-      parameters: { 
-        startInstancesAfterDuration: 'PT5M' 
+      parameters: {
+        startInstancesAfterDuration: 'PT5M'
       },
-      targets: { 
+      targets: {
         Instances: 'instanceTargets'
       }
     }
@@ -106,21 +101,19 @@ export class Ec2InstancesExperiments extends Stack {
       parameters: {
         documentArn: `arn:aws:ssm:${this.region}::document/AWSFIS-Run-Network-Latency-Sources`,
         documentParameters: JSON.stringify(
-          { 
+          {
             DurationSeconds: '120',
             Interface: 'eth0',
             DelayMilliseconds: '200',
             JitterMilliseconds: '10',
             Sources: 'www.amazon.com',
             InstallDependencies: 'True'
-          } 
+          }
         ),
         duration: 'PT3M'
       },
       targets: { Instances: 'instanceTargets' }
     }
-
-
 
     // Experiments
     const templateStopStartInstance = new fis.CfnExperimentTemplate(this, 'fis-template-stop-instances-in-vpc-az',
@@ -131,18 +124,18 @@ export class Ec2InstancesExperiments extends Stack {
           source: 'aws:cloudwatch:alarm',
           value: importedStopConditionArn.toString()
         }],
-        tags: { 
+        tags: {
           Name: 'FIS Experiment',
           Stackname: this.stackName
         },
         actions: {
-          'instanceActions' : stopInstanceAction
+          'instanceActions': stopInstanceAction
         },
         targets: {
           'instanceTargets': TargetAllInstances
         }
       }
-    );  
+    );
 
     const templateCPUStress = new fis.CfnExperimentTemplate(this, 'fis-template-CPU-stress-random-instances-in-vpc',
       {
@@ -152,12 +145,12 @@ export class Ec2InstancesExperiments extends Stack {
           source: 'aws:cloudwatch:alarm',
           value: importedStopConditionArn.toString()
         }],
-        tags: { 
+        tags: {
           Name: 'FIS Experiment',
           Stackname: this.stackName
         },
         actions: {
-          'instanceActions' : cpuStressAction
+          'instanceActions': cpuStressAction
         },
         targets: {
           'instanceTargets': TargetRandomInstance
@@ -173,19 +166,17 @@ export class Ec2InstancesExperiments extends Stack {
           source: 'aws:cloudwatch:alarm',
           value: importedStopConditionArn.toString()
         }],
-        tags: { 
+        tags: {
           Name: 'FIS Experiment',
           Stackname: this.stackName
         },
         actions: {
-          'instanceActions' : latencySourceAction
+          'instanceActions': latencySourceAction
         },
         targets: {
           'instanceTargets': TargetAllInstances
         }
       }
     );
-
-
   }
 }

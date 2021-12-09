@@ -1,8 +1,8 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { StackProps, Stack } from 'aws-cdk-lib';                 // core constructs
-import { aws_fis as fis } from 'aws-cdk-lib'; 
-import { aws_ssm as ssm } from 'aws-cdk-lib'; 
+import { aws_fis as fis } from 'aws-cdk-lib';
+import { aws_ssm as ssm } from 'aws-cdk-lib';
 import fs = require('fs');
 import path = require('path');
 import yaml = require('js-yaml');
@@ -38,17 +38,10 @@ export class NaclExperiments extends Stack {
     //   default: 'vpc-01316e63b948d889d',
     // });
 
-
     // if vpcID parameter is in cdk.json us the below
     const vpcId = this.node.tryGetContext('vpc_id');
-    console.log('vpcId: ', vpcId.toString());
-    
     const availabilityZones = Stack.of(this).availabilityZones;
-
-    console.log('availability zones: ', Stack.of(this).availabilityZones);
-
     const randomAvailabilityZone = availabilityZones[Math.floor(Math.random() * availabilityZones.length)];
-    console.log('random availability zone: ', randomAvailabilityZone);
     // const randomAvailabilityZone = 'us-east-1a'
 
     // Targets - empty since SSMA defines its own targets
@@ -60,12 +53,12 @@ export class NaclExperiments extends Stack {
       parameters: {
         documentArn: `arn:aws:ssm:${this.region}:${this.account}:document/NACL-FIS-Automation`,
         documentParameters: JSON.stringify(
-          { 
+          {
             AvailabilityZone: randomAvailabilityZone.toString(),
             VPCId: vpcId.toString(),
             Duration: 'PT1M',
             AutomationAssumeRole: importedSSMANaclRoleArn.toString()
-          } 
+          }
         ),
         maxDuration: 'PT2M'
       }
@@ -80,19 +73,16 @@ export class NaclExperiments extends Stack {
           source: 'aws:cloudwatch:alarm',
           value: importedStopConditionArn.toString()
         }],
-        tags: { 
+        tags: {
           Name: 'FIS Experiment',
           Stackname: this.stackName
         },
         actions: {
-          'ssmaAction' : startAutomation
+          'ssmaAction': startAutomation
         },
         targets: {
         }
       }
-    );  
-
-
-
+    );
   }
 }
