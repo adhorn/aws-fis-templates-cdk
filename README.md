@@ -6,11 +6,24 @@
 [![Twitter](https://img.shields.io/twitter/url/https/github.com/adhorn/aws-fis-experiment-templates?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fgithub.com%2Fadhorn%2Faws-fis-templates-cdk)
 
 
-# Collection of [FIS Experiment Templates](https://docs.aws.amazon.com/fis/latest/userguide/experiment-templates.html)
+# Collection of ready-made [AWS FIS Experiment Templates](https://docs.aws.amazon.com/fis/latest/userguide/experiment-templates.html) defined using the CDK.
 
 These templates let you perform fault injection experiments on resources (applications, network, and infrastructure) in the [AWS Cloud](https://aws.amazon.com).
 
-## Currently available
+## What is AWS FIS anyway?
+
+AWS Fault Injection Simulator (AWS FIS) is a managed service that enables you to perform fault injection experiments on your AWS workloads. Fault injection is based on the principles of chaos engineering. These experiments stress an application by creating disruptive events so that you can observe how your application responds. You can then use this information to improve the performance and resiliency of your applications so that they behave as expected.
+
+To use AWS FIS, you set up and run experiments that help you create the real-world conditions needed to uncover application issues that can be difficult to find otherwise. AWS FIS provides templates that generate disruptions, and the controls and guardrails that you need to run experiments in production, such as automatically rolling back or stopping the experiment if specific conditions are met. 
+
+
+# What is included in this package?
+
+## 1 - The [IAM roles](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-role) required to run the experiments:
+- The AWS FIS role with all necessary policies as described [here](https://docs.aws.amazon.com/fis/latest/userguide/getting-started-iam-service-role.html)
+- SSM Automation document role for [faults using SSMA](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/documents).
+
+## 2 - A set of [AWS FIS experiments](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments) to get you started: 
 
 ###  [EC2 Instance faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/ec2-instance-faults)
 - Including:
@@ -33,16 +46,26 @@ These templates let you perform fault injection experiments on resources (applic
 - Including:
     - Modifying Nacls associated with subnets that belong to a particular AZ to deny traffic in that AZ.
 
-## Prerequisites:
+### Configuration:
+These sample experiments uses default values for some of the parameters, such as a `vpc_id` and `asg_name`. 
+Modify these in the file `cdk.json` before deploying to reflect your own AWS environment.
+You can also specify your own tags for filtering EC2 instances. The currently used ones are defined as:
+```
+resourceTags: {
+        'FIS-Ready': 'true'
+      }
+```
 
--   [What is AWS Fault Injection Simulator?](https://docs.aws.amazon.com/fis/latest/userguide/what-is.html)
--   [Experiment templates for AWS FIS](https://docs.aws.amazon.com/fis/latest/userguide/experiment-templates.html)
--   [How AWS Fault Injection Simulator works with IAM](https://docs.aws.amazon.com/fis/latest/userguide/security_iam_service-with-iam.html)
 
-## Configuration:
-The current CDK uses default values for some of the configuration parameters, such as a `vpc_id` and `asg_name`. 
-Modify these in the file `cdk.json` before deploying to reflect your AWS environment. 
+## 3 - An example [stop-condition](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-stop-condition) using CloudWatch alarm
 
+All templates use the same CloudWatch Alarm to get you started using the `stop-condition`. You can use this alarm to get familiar with canceling experiments. For example, you can trigger that alarm, for 1 minutes, using the following command:
+
+```bash
+aws cloudwatch set-alarm-state --alarm-name "NetworkInAbnormal" --state-value "ALARM" --state-reason "testing FIS"
+```
+
+Once you are familiar with the `stop-condition`, you should of course update the CloudWatch alarms with ones specific to your application and architecture.
 
 
 
@@ -53,14 +76,7 @@ npm install
 cdk deploy
 ```
 
-## Cancel experiment using CloudWatch alarm
-All templates have the same synthetic CloudWatch Alarm to get you started using the `stop-condition`. To use this alarm to test canceling experiments, do the following:
 
-```bash
-aws cloudwatch set-alarm-state --alarm-name "NetworkInAbnormal" --state-value "ALARM" --state-reason "testing FIS"
-```
-
-Once familiar with the `stop-condition`, update the CloudWatch alarms with more appropriate ones.
 
 
 ### Other useful CDK commands:
