@@ -1,6 +1,7 @@
-import * as cdk from '@aws-cdk/core';
-import { Construct, Stack, StackProps } from '@aws-cdk/core';
-import * as cw from '@aws-cdk/aws-cloudwatch';
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import { StackProps, Stack } from 'aws-cdk-lib';
+import { aws_cloudwatch as cw } from 'aws-cdk-lib'; 
 
 export class StopCondition extends Stack {
     constructor(scope: Construct, id: string, props?: StackProps) {

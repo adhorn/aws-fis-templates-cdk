@@ -1,6 +1,7 @@
-import * as cdk from '@aws-cdk/core';
-import { Construct, Stack, StackProps } from '@aws-cdk/core';
-import * as fis from '@aws-cdk/aws-fis';
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import { StackProps, Stack } from 'aws-cdk-lib';
+import { aws_fis as fis } from 'aws-cdk-lib'; 
 
 export class AsgExperiments extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
