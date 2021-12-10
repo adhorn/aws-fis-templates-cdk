@@ -8,6 +8,7 @@ import { Ec2InstancesExperiments } from './fis-experiments/ec2-instance-faults/e
 import { Ec2ControlPlaneExperiments } from './fis-experiments/ec2-control-plane-faults/experiments-stack';
 import { NaclExperiments } from './fis-experiments/nacl-faults/experiments-stack';
 import { AsgExperiments } from './fis-experiments/asg-faults/experiments-stack';
+import { EksExperiments } from './fis-experiments/eks-faults/experiments-stack';
 
 export class FIS extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -19,6 +20,7 @@ export class FIS extends Stack {
     const Ec2ControlPlaneExperimentsStack = new Ec2ControlPlaneExperiments(this, 'Ec2APIExp');
     const NaclExperimentsStack = new NaclExperiments(this, 'NaclExp');
     const AsgExperimentsStack = new AsgExperiments(this, 'AsgExp');
+    const EksExperimentsStack = new EksExperiments(this, 'EksExp');
 
     IamRoleStack.node.addDependency(LogsStack)
     Ec2InstancesExperimentStack.node.addDependency(IamRoleStack)
@@ -29,5 +31,7 @@ export class FIS extends Stack {
     NaclExperimentsStack.node.addDependency(StopConditionStack)
     AsgExperimentsStack.node.addDependency(IamRoleStack)
     AsgExperimentsStack.node.addDependency(StopConditionStack)
+    EksExperimentsStack.node.addDependency(IamRoleStack)
+    EksExperimentsStack.node.addDependency(StopConditionStack)
   }
 }

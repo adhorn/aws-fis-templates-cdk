@@ -2,6 +2,7 @@
   "app": "npx ts-node --prefer-ts-exts bin/aws-fis-cdk-templates.ts",
   "context": {
     "vpc_id": "vpc-01316e63b948d889d",
-    "asg_name": "Test-FIS-ASG"
+    "asg_name": "Test-FIS-ASG",
+    "eks_cluster_name": "test-cluster-chaos"
   }
 }

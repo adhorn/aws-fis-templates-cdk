@@ -42,6 +42,11 @@ To use AWS FIS, you set up and run experiments that help you create the real-wor
 - Including:
     - Modifying Nacls associated with subnets that belong to a particular AZ to deny traffic in that AZ.
 
+### [EKS faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/eks-faults)
+- Including:
+    - Running the EC2 API action TerminateInstances on the target node group. 
+
+
 ### Configuration:
 These sample FIS experiments uses default values for some of the parameters, such as a `vpc_id` and `asg_name`. 
 Modify these in the file `cdk.json` before deploying to reflect your own AWS environment.
