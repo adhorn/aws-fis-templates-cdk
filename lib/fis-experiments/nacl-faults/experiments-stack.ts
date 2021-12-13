@@ -2,34 +2,18 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { StackProps, Stack } from 'aws-cdk-lib';                 // core constructs
 import { aws_fis as fis } from 'aws-cdk-lib';
-import { aws_ssm as ssm } from 'aws-cdk-lib';
-import fs = require('fs');
-import path = require('path');
-import yaml = require('js-yaml');
+
 
 export class NaclExperiments extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    // Deploy the SSMA document to inject the Nacl faults
-    let file = path.join(
-      __dirname,
-      '../../../documents/ssma-nacl-faults.yml'
-    );
-
-    const content = fs.readFileSync(file).toString()
-
-    const cfnDocument = new ssm.CfnDocument(this, `SSM-Document-Automation`, {
-      content: yaml.load(content),
-      documentType: 'Automation',
-      documentFormat: 'YAML',
-      name: 'NACL-FIS-Automation',
-    });
-
     // Import FIS Role and Stop Condition
     const importedFISRoleArn = cdk.Fn.importValue('FISIamRoleArn');
     const importedSSMANaclRoleArn = cdk.Fn.importValue('SSMANaclRoleArn');
     const importedStopConditionArn = cdk.Fn.importValue('StopConditionArn');
+
+    const importedNaclSSMADocName = cdk.Fn.importValue('NaclSSMADocName');
 
     // Variables you may want to change based on your environment
     // const vpcId = new cdk.CfnParameter(this, 'vpcId', {
@@ -44,6 +28,7 @@ export class NaclExperiments extends Stack {
     const randomAvailabilityZone = availabilityZones[Math.floor(Math.random() * availabilityZones.length)];
     // const randomAvailabilityZone = 'us-east-1a'
 
+
     // Targets - empty since SSMA defines its own targets
 
     // Actions
@@ -51,7 +36,7 @@ export class NaclExperiments extends Stack {
       actionId: 'aws:ssm:start-automation-execution',
       description: 'Calling SSMA document to inject faults in the NACLS of a particular AZ.',
       parameters: {
-        documentArn: `arn:aws:ssm:${this.region}:${this.account}:document/NACL-FIS-Automation`,
+        documentArn: `arn:aws:ssm:${this.region}:${this.account}:document/${importedNaclSSMADocName.toString()}`,
         documentParameters: JSON.stringify(
           {
             AvailabilityZone: randomAvailabilityZone.toString(),

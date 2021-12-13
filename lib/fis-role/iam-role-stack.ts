@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { StackProps, Stack } from 'aws-cdk-lib';
 import { aws_iam as iam } from 'aws-cdk-lib';
+import { Condition } from 'aws-cdk-lib/aws-stepfunctions';
 
 export class FisRole extends Stack {
     constructor(scope: Construct, id: string, props?: StackProps) {
@@ -12,7 +13,17 @@ export class FisRole extends Stack {
 
         // FIS Role
         const fisrole = new iam.Role(this, 'fis-role', {
-            assumedBy: new iam.ServicePrincipal('fis.amazonaws.com'),
+            assumedBy: new iam.ServicePrincipal('fis.amazonaws.com', {   
+                conditions: {
+                    'StringEquals': {
+                        'aws:SourceAccount': this.account
+                    },
+                    'ArnLike': {
+                        'aws:SourceArn': `arn:aws:fis:${this.region}:${this.account}:experiment/*`
+                    }
+                }
+            }
+            ),
         });
 
         // AllowFISExperimentRoleCloudWatchActions
@@ -104,7 +115,7 @@ export class FisRole extends Stack {
         fisrole.addToPolicy(new iam.PolicyStatement({
             resources: ['*'],
             actions: [
-                'rds:DescribeDBInstance',
+                'rds:DescribeDBInstances',
                 'rds:DescribeDbClusters'
             ],
         }))
@@ -141,11 +152,21 @@ export class FisRole extends Stack {
                 `*`
             ],
             actions: [
-                'ssm:StartAutomationExecution',
                 'ssm:StopAutomationExecution',
                 'ssm:GetAutomationExecution'
             ],
         }))
+
+        //AllowFISExperimentRoleSSMAAction
+        fisrole.addToPolicy(new iam.PolicyStatement({
+            resources: [
+                `*`
+            ],
+            actions: [
+                'ssm:StartAutomationExecution'
+            ],
+        }))
+
 
         //AllowFISExperimentRoleSSMSendCommand
         fisrole.addToPolicy(new iam.PolicyStatement({
@@ -161,7 +182,7 @@ export class FisRole extends Stack {
         //AllowFISExperimentRoleSSMAutomationPassRole
         fisrole.addToPolicy(new iam.PolicyStatement({
             resources: [
-                `arn:aws:iam::*:role/*`
+                `arn:aws:iam::*:role/${this.stackName}*`
             ],
             actions: [
                 'iam:PassRole'

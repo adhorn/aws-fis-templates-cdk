@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { StackProps, Stack } from 'aws-cdk-lib';
+import { FisSsmDocs } from './fis-upload-ssm-docs/ssm-upload-stack'
 import { FisRole } from './fis-role/iam-role-stack';
 import { FisLogs } from './fis-logs/logs-stack';
 import { StopCondition } from './fis-stop-condition/stop-condition-stack';
@@ -13,6 +14,7 @@ import { EksExperiments } from './fis-experiments/eks-faults/experiments-stack';
 export class FIS extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
+    const SSMDocStack = new FisSsmDocs(this, 'FisSsmDocs')
     const LogsStack = new FisLogs(this, 'FisLogs');
     const IamRoleStack = new FisRole(this, 'FisRole');
     const StopConditionStack = new StopCondition(this, 'StopCond');
@@ -22,6 +24,7 @@ export class FIS extends Stack {
     const AsgExperimentsStack = new AsgExperiments(this, 'AsgExp');
     const EksExperimentsStack = new EksExperiments(this, 'EksExp');
 
+    SSMDocStack.node.addDependency(IamRoleStack)
     IamRoleStack.node.addDependency(LogsStack)
     Ec2InstancesExperimentStack.node.addDependency(IamRoleStack)
     Ec2InstancesExperimentStack.node.addDependency(StopConditionStack)
