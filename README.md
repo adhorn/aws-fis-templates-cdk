@@ -65,7 +65,7 @@ Modify these in the file `cdk.json` before deploying to reflect the particularit
 ```
 
 You can also specify your own tags for filtering EC2 instances. The currently used ones are defined as:
-```json
+```
 resourceTags: {
         'FIS-Ready': 'true'
       }
