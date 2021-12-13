@@ -14,18 +14,22 @@ import { EksExperiments } from './fis-experiments/eks-faults/experiments-stack';
 export class FIS extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
+    // Mandatory stacks (Do not comment out)
     const SSMDocStack = new FisSsmDocs(this, 'FisSsmDocs')
     const LogsStack = new FisLogs(this, 'FisLogs');
     const IamRoleStack = new FisRole(this, 'FisRole');
     const StopConditionStack = new StopCondition(this, 'StopCond');
+
+    SSMDocStack.node.addDependency(IamRoleStack)
+    IamRoleStack.node.addDependency(LogsStack)  
+
+    // Experiment Group stacks (Comment out experiments you are not interested in)
     const Ec2InstancesExperimentStack = new Ec2InstancesExperiments(this, 'Ec2InstExp');
     const Ec2ControlPlaneExperimentsStack = new Ec2ControlPlaneExperiments(this, 'Ec2APIExp');
     const NaclExperimentsStack = new NaclExperiments(this, 'NaclExp');
     const AsgExperimentsStack = new AsgExperiments(this, 'AsgExp');
     const EksExperimentsStack = new EksExperiments(this, 'EksExp');
 
-    SSMDocStack.node.addDependency(IamRoleStack)
-    IamRoleStack.node.addDependency(LogsStack)
     Ec2InstancesExperimentStack.node.addDependency(IamRoleStack)
     Ec2InstancesExperimentStack.node.addDependency(StopConditionStack)
     Ec2ControlPlaneExperimentsStack.node.addDependency(IamRoleStack)

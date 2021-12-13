@@ -15,6 +15,11 @@ To use AWS FIS, you set up and run experiments that help you create the real-wor
 
 # What is included in this package?
 
+This CDK package will deplay a bunch of stacks.
+(1) the parent stack `FISPa`, (2) a stack for the IAM roles `FisRole`, (3) a stack for the stop-condition `StopCond` (CloudWatch alarm), (4) a stack for each FIS experiment group (`EC2API`, `AsgExp`, `EksExp`, `NaclExp`, `Ec2InstExp`), and (5) a stack dedicated to uploading SSM documents `FisSsmDocs`.
+
+You can pick and choose which experiment group you want to deploy by simply commenting out the respective stacks [here](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/parent-stack-ts)
+
 ## 1 - The [IAM roles](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-role) required to run the experiments:
 - The AWS FIS role with all necessary policies as described [here](https://docs.aws.amazon.com/fis/latest/userguide/getting-started-iam-service-role.html)
 - SSM Automation document role for [faults using SSMA](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/documents).
@@ -47,16 +52,24 @@ To use AWS FIS, you set up and run experiments that help you create the real-wor
     - Running the EC2 API action TerminateInstances on the EKS target node group. 
 
 
-### Configuration:
-These sample FIS experiments uses default values for some of the parameters, such as a `vpc_id` and `asg_name`. 
-Modify these in the file `cdk.json` before deploying to reflect your own AWS environment.
-You can also specify your own tags for filtering EC2 instances. The currently used ones are defined as:
+### Configuring experiments:
+These sample FIS experiments uses default values for some of the parameters, such as a `vpc_id`, `asg_name` and `eks_cluster_name`. 
+Modify these in the file `cdk.json` before deploying to reflect the particularity of your own AWS environment.
+
+```json  
+"context": {
+    "vpc_id": "vpc-01316e63b948d889d",
+    "asg_name": "Test-FIS-ASG",
+    "eks_cluster_name": "test-cluster-chaos"
+  }
 ```
+
+You can also specify your own tags for filtering EC2 instances. The currently used ones are defined as:
+```json
 resourceTags: {
         'FIS-Ready': 'true'
       }
 ```
-
 
 ## 3 - An example [stop-condition](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-stop-condition) using CloudWatch alarm
 
@@ -67,6 +80,9 @@ aws cloudwatch set-alarm-state --alarm-name "NetworkInAbnormal" --state-value "A
 ```
 
 Once you are familiar with the `stop-condition`, you should of course update the CloudWatch alarms with ones specific to your application and architecture.
+
+## 4 - A stack dedicated to [uploading SSM docs](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-upload-ssm-docs) (Automation or Run-Command)
+
 
 
 
