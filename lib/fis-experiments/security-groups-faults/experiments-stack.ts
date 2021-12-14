@@ -21,7 +21,7 @@ export class SecGroupExperiments extends Stack {
     // Actions
     const startAutomation = {
       actionId: 'aws:ssm:start-automation-execution',
-      description: 'Calling SSMA document to inject faults in the NACLS of a particular AZ.',
+      description: 'Calling SSMA document to inject faults in a particular security group (open SSH to 0.0.0.0/0)',
       parameters: {
         documentArn: `arn:aws:ssm:${this.region}:${this.account}:document/${importedSecGroupSSMADocName.toString()}`,
         documentParameters: JSON.stringify(
@@ -38,7 +38,7 @@ export class SecGroupExperiments extends Stack {
     // Experiments
     const templateSecGroup = new fis.CfnExperimentTemplate(this, 'fis-template-inject-nacl-fault',
       {
-        description: 'Experiment to test response to a change in security groupp ingress rule',
+        description: 'Experiment to test response to a change in security group ingress rule (open SSH to 0.0.0.0/0)',
         roleArn: importedFISRoleArn.toString(),
         stopConditions: [{
           source: 'aws:cloudwatch:alarm',
