@@ -3,6 +3,7 @@
   "context": {
     "vpc_id": "vpc-01316e63b948d889d",
     "asg_name": "Test-FIS-ASG",
-    "eks_cluster_name": "test-cluster-chaos"
+    "eks_cluster_name": "test-cluster-chaos",
+    "security_group_id": "sg-022eb488dbd1655b3"
   }
 }

@@ -13,24 +13,45 @@ export class FisSsmDocs extends Stack {
     super(scope, id, props);
 
     // Deploy the SSMA document to inject the Nacl faults
-    let file = path.join(
+    let nacl_file = path.join(
       __dirname,
       'documents/ssma-nacl-faults.yml'
     );
 
-    const content = fs.readFileSync(file).toString()
+    const nacl_content = fs.readFileSync(nacl_file).toString()
 
-    const cfnDocument = new ssm.CfnDocument(this, `SSM-Document-Automation`, {
+    const nacl_cfnDocument = new ssm.CfnDocument(this, `Nacl-SSM-Document`, {
+      content: yaml.load(nacl_content),
+      documentType: 'Automation',
+      documentFormat: 'YAML',
+      // name: 'NACL-FIS-Automation',
+    });
+
+    // Deploy the SSMA document to inject the security group faults
+    let secgroup_file = path.join(
+      __dirname,
+      'documents/security-groups-faults.yml'
+    );
+
+    const content = fs.readFileSync(secgroup_file).toString()
+
+    const secgroup_cfnDocument = new ssm.CfnDocument(this, `SecGroup-SSM-Document`, {
       content: yaml.load(content),
       documentType: 'Automation',
       documentFormat: 'YAML',
-      name: 'NACL-FIS-Automation',
+      // name: 'SecurityGroup-FIS-Automation',
     });
 
     new cdk.CfnOutput(this, 'NaclSSMADocName', {
-      value: cfnDocument.name!,
-      description: 'The Arn of the SSM Doc',
+      value: nacl_cfnDocument.ref!,
+      description: 'The name of the SSM Doc',
       exportName: 'NaclSSMADocName',
+    });
+
+    new cdk.CfnOutput(this, 'SecGroupSSMADocName', {
+      value: secgroup_cfnDocument.ref!,
+      description: 'The name of the SSM Doc',
+      exportName: 'SecGroupSSMADocName',
     });
 
   }

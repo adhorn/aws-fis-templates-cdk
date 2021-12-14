@@ -19,7 +19,7 @@ description: |
   * AutomationAssumeRole: (Optional) The ARN of the role that allows Automation to perform the actions on your behalf.
   * VPCId: (Required) The ID of the VPC where the subnet reside.
   * AvailabilityZone: (Required) The Availability Zone to impact
-  * Duration: (Optional) ** Default 1 minute ** Maximum duration the fault can exist for.
+  * DurationMinutes: (Optional) ** Default 1 minute ** Maximum duration the fault can exist for.
 
   ## Supports Rollback
   Yes. The Nacl association is reverted.
@@ -31,13 +31,14 @@ description: |
   This document has no outputs.
 
   ## Minimum Permissions Required
-  * `ec2:RevokeSecurityGroupIngress`
-  * `ec2:AuthorizeSecurityGroupIngress`
-  * `ec2:DescribeSecurityGroups`
-  * `ec2:DescribeInstances``
-  * `ec2:DescribeInstanceStatus`
-  * `ec2:TerminateInstances`
-  * `autoscaling:DescribeAutoScalingGroups`
+  * ec2:DescribeInstances
+  * ec2:CreateNetworkAcl
+  * ec2:CreateTags
+  * ec2:CreateNetworkAclEntry
+  * ec2:DescribeSubnets
+  * ec2:DescribeNetworkAcls
+  * ec2:ReplaceNetworkAclAssociation
+  * ec2:DeleteNetworkAc
 
   ## Additional Permissions for logging
   * logs:CreateLogStream
@@ -65,7 +66,7 @@ parameters:
   VPCId:
     type: String
     description: "The ID of the VPC where the subnet reside"
-  Duration:
+  DurationMinutes:
     type: String
     description: "The duration - in ISO-8601 format - of the attack. (Required)"
     default: "PT1M"
@@ -233,12 +234,14 @@ mainSteps:
     - Name: ChaosNacl
       Selector: $.Payload.chaos_nacl_id
       Type: String
+
 - name: sleep
   action: aws:sleep
   onFailure: 'step:rollback'
   onCancel: 'step:rollback'
   inputs:
-    Duration: "{{ Duration }}"
+    Duration: "{{ DurationMinutes }}"
+
 - name: rollback
   action: aws:executeScript
   inputs:

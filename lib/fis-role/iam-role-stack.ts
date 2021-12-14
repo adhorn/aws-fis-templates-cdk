@@ -296,43 +296,55 @@ export class FisRole extends Stack {
             ],
         }))
 
-        // SSMA Role for SSMA Documents fault
-        // ASG faults 'ssma-asg-faults.yml'
-        const ssmaAsgRole = new iam.Role(this, 'ssma-asg-role', {
+        // Additional Permissions for logging
+        ssmaNaclRole.addToPolicy(new iam.PolicyStatement({
+            resources: [
+                '*'
+            ],
+            actions: [
+                'logs:CreateLogStream',
+                'logs:CreateLogGroup',
+                'logs:PutLogEvents',
+                'logs:DescribeLogGroups',
+                'logs:DescribeLogStreams'
+            ]
+        }))
+
+        // Security Group faults 'security-groups-faults.yml'
+        const ssmaSecGroupRole = new iam.Role(this, 'ssma-secgroup-role', {
             assumedBy: new iam.CompositePrincipal(
                 new iam.ServicePrincipal('iam.amazonaws.com'),
                 new iam.ServicePrincipal('ssm.amazonaws.com')
             )
         });
-        const ssmaAsgRoleAsCfn = ssmaAsgRole.node.defaultChild as iam.CfnRole;
-        ssmaAsgRoleAsCfn.addOverride(
+        const ssmaSecGroupRoleAsCfn = ssmaSecGroupRole.node.defaultChild as iam.CfnRole;
+        ssmaSecGroupRoleAsCfn.addOverride(
             'Properties.AssumeRolePolicyDocument.Statement.0.Principal.Service', [
             'ssm.amazonaws.com', 'iam.amazonaws.com'
         ]);
 
         // AllowSSMARoleNaclFaults
-        ssmaAsgRole.addToPolicy(new iam.PolicyStatement({
+        ssmaSecGroupRole.addToPolicy(new iam.PolicyStatement({
             resources: ['*'],
             actions: [
-                'ec2:DescribeInstances',
-                'ec2:DescribeInstanceStatus',
-                'autoscaling:DescribeAutoScalingGroups'
+                'ec2:RevokeSecurityGroupIngress',
+                'ec2:AuthorizeSecurityGroupIngress',
+                'ec2:DescribeSecurityGroups'
             ],
         }))
 
-        ssmaAsgRole.addToPolicy(new iam.PolicyStatement({
+        // Additional Permissions for logging
+        ssmaSecGroupRole.addToPolicy(new iam.PolicyStatement({
             resources: [
-                'arn:aws:ec2:*:*:instance/*'
+                '*'
             ],
             actions: [
-                'ec2:TerminateInstances',
-            ],
-            conditions: {
-                StringEquals:
-                {
-                    'aws:ResourceTag/FIS-Ready': 'true',
-                }
-            }
+                'logs:CreateLogStream',
+                'logs:CreateLogGroup',
+                'logs:PutLogEvents',
+                'logs:DescribeLogGroups',
+                'logs:DescribeLogStreams'
+            ]
         }))
 
         // Outputs
@@ -348,10 +360,10 @@ export class FisRole extends Stack {
             exportName: 'SSMANaclRoleArn',
         });
 
-        new cdk.CfnOutput(this, 'SSMAAsgRoleArn', {
-            value: ssmaAsgRole.roleArn,
+        new cdk.CfnOutput(this, 'SSMASecGroupRoleArn', {
+            value: ssmaSecGroupRole.roleArn,
             description: 'The Arn of the IAM role',
-            exportName: 'SSMAAsgRoleArn',
+            exportName: 'SSMASecGroupRoleArn',
         });
     }
 }

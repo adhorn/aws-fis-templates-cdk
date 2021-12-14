@@ -1,0 +1,137 @@
+---
+  # Courtersy of Jonathan Rudge (@jrrudge)
+
+  #==================================================
+  # SSM Automation Document / Runbook:
+  # Defines the configuration as well as the
+  # the steps to be run by SSM Automation
+  #==================================================
+
+description: |
+  ### Document Name - SecurityGroup-FIS-Automation
+
+  ## What does this document do?
+  This document by default opens port 22 (SSH) in a given Security Group to test automated remediation response. 
+
+  The script will authorize and ingress rule then check for the maximum defined duration whether the rule has been revoked.
+
+  Once it detects the rule has been revoked the automation completes. If the rule exists after the maximum duration the rule will be revoked.
+
+  ## Security Risk
+  High: By default opens SSH to the world for a given security group the rule is marked with the FIS experiment ID.
+
+  The script will only allow the rule to exist for the maximum time specified in the input parameters.
+
+  ## Input Parameters
+  * SecurityGroupId: (Required) Security group id, This security group will targeted to add the demo rule.
+  * AutomationAssumeRole: (Optional) The ARN of the role that allows Automation to perform the actions on your behalf.
+  * RuleProtocol: (Optional) ** Default: TCP ** Protocol for ingress rule to be authorized.
+  * RulePort: (Optional) ** Default 22 ** Port for ingress rule to the authorized.
+  * RuleCIDR: (Optional) ** Default 0.0.0.0/0 ** CIDR for ingress rule to the authorized.
+  * TestDurationInMinutes: (Optional) ** Default 1 minute ** Maximum duration the test rule can exist for.
+
+  ## Supports Rollback
+  Yes. rule is Revoked.
+
+  ## Cancellation behaviour
+  Revoke ingress rule that was added.   
+
+  ## Output Parameters
+  This document has no outputs.
+
+  ## Minimum Permissions Required
+  * `ec2:RevokeSecurityGroupIngress`
+  * `ec2:AuthorizeSecurityGroupIngress`
+  * `ec2:DescribeSecurityGroups`
+
+  ## Additional Permissions for logging
+  * logs:CreateLogStream
+  * logs:CreateLogGroup
+  * logs:PutLogEvents
+  * logs:DescribeLogGroups
+  * logs:DescribeLogStreams
+
+schemaVersion: '0.3'
+
+#==================================================
+# Role assumed my the automation document / runbook
+#==================================================
+assumeRole: '{{AutomationAssumeRole}}'
+
+#==================================================
+# SSM automation document parameters
+#==================================================
+
+parameters:
+  SecurityGroupId:
+    type: String
+    description: (Required) The security group ID.
+    allowedPattern: '^(sg-)([0-9a-f]){1,}$'
+  RuleProtocol:
+    type: String
+    description: (Optional) The Protocol to Authorize.
+    default: 'TCP'
+  RulePort:
+    type: Integer
+    description: (Optional) The Port to Authorize.
+    allowedPattern: '^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$'
+    default: 22
+  RuleCIDR:
+    type: String
+    description: (Optional) The CIDR to Authorize.
+    allowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))?$'
+    default: '0.0.0.0/0'
+  AutomationAssumeRole:
+    type: String
+    description: (Optional) The ARN of the role that allows Automation to perform the actions on your behalf.
+    default: ''
+    allowedPattern: '^arn:aws(-cn|-us-gov)?:iam::\d{12}:role\/[\w+=,.@_\/-]+|^$'
+  DurationMinutes:
+    type: String
+    description: (Optional) Duration in minutes.
+    default: "1"
+
+#==================================================
+# Automation steps
+#==================================================
+
+mainSteps:
+
+  - name: AuthorizeSecurityIngressRule
+    description: Authorize Security Group Ingress.
+    action: 'aws:executeAwsApi'
+    onFailure: Abort
+    outputs:
+      - Name: SecurityGroupRuleId
+        Selector: $.SecurityGroupRules[0].SecurityGroupRuleId
+        Type: String
+    inputs:
+      Service: ec2
+      Api: AuthorizeSecurityGroupIngress
+      GroupId: '{{SecurityGroupId}}'
+      IpPermissions:
+        - IpProtocol: '{{RuleProtocol}}'
+          FromPort: '{{RulePort}}'
+          ToPort: '{{RulePort}}'
+          IpRanges:
+            - CidrIp: '{{RuleCIDR}}'
+              Description: 'Added by FIS Experiment. ExecutionID: {{automation:EXECUTION_ID}}'                 
+
+  - name: sleep
+    action: aws:sleep
+    onFailure: 'step:RevokeSecurityIngressRule'
+    onCancel: 'step:RevokeSecurityIngressRule'
+    inputs:
+      Duration: "{{ DurationMinutes }}"
+
+  - name: RevokeSecurityIngressRule
+    description: Revoke Security Group Ingress.
+    action: 'aws:executeAwsApi'
+    isEnd: true
+    inputs:
+      Service: ec2
+      Api: RevokeSecurityGroupIngress
+      GroupId: '{{SecurityGroupId}}'
+      SecurityGroupRuleIds:
+        - '{{ AuthorizeSecurityIngressRule.SecurityGroupRuleId }}'           
+

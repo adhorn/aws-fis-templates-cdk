@@ -41,7 +41,7 @@ export class NaclExperiments extends Stack {
           {
             AvailabilityZone: randomAvailabilityZone.toString(),
             VPCId: vpcId.toString(),
-            Duration: 'PT1M',
+            DurationMinutes: 'PT1M',
             AutomationAssumeRole: importedSSMANaclRoleArn.toString()
           }
         ),
