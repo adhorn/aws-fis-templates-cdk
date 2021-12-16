@@ -36,7 +36,7 @@ export class SecGroupExperiments extends Stack {
     }
 
     // Experiments
-    const templateSecGroup = new fis.CfnExperimentTemplate(this, 'fis-template-inject-nacl-fault',
+    const templateSecGroup = new fis.CfnExperimentTemplate(this, 'fis-template-inject-secgroup-fault',
       {
         description: 'Experiment to test response to a change in security group ingress rule (open SSH to 0.0.0.0/0)',
         roleArn: importedFISRoleArn.toString(),

@@ -1,0 +1,99 @@
+---
+  # Courtesy of Rudolph Wagner
+
+  #==================================================
+  # SSM Automation Document / Runbook:
+  # Defines the configuration as well as the
+  # the steps to be run by SSM Automation
+  #==================================================
+
+description: |
+  ### Document Name - IAM-ACCESS-FIS-Automation
+
+  ## What does this document do?
+  SSMA Document for Injecting Access Denied Faults on AWS Resrouces by attaching Deny Poliecies to the Application's IAM User or Role.
+  
+  ## Security Risk
+  Low: This fault changes the security posture of the IAM role. However, the risk is low since it removes access rather than adding some. It does it by adding a deny access policy to a particular services (S3, dynanodb, ...) to an existing Iam role.
+
+  ## Input Parameters
+  * AutomationAssumeRole: (Optional) The ARN of the role that allows Automation to perform the actions on your behalf.
+  * DurationMinutes: (Optional) ** Default 1 minute ** Maximum duration the fault can exist for.
+
+  ## Supports Rollback
+  Yes. The extra policy is removed.
+
+  ## Cancellation behaviour
+  Yes. The extra policy is removed.
+
+  ## Output Parameters
+  This document has no outputs.
+
+  ## Minimum Permissions Required
+  * iam:DetachRolePolicy 
+  * iam:AttachRolePolicy
+
+  ## Additional Permissions for logging
+  * logs:CreateLogStream
+  * logs:CreateLogGroup
+  * logs:PutLogEvents
+  * logs:DescribeLogGroups
+  * logs:DescribeLogStreams
+
+
+schemaVersion: "0.3"
+
+#==================================================
+# Role assumed my the automation document / runbook
+#==================================================
+assumeRole: "{{ AutomationAssumeRole }}"
+
+#==================================================
+# SSM automation document parameters
+#==================================================
+parameters:
+  AccessDenyPolicyArn:
+    type: String
+    description: ARN of Deny IAM Policy for an AWS Resource that will be Attached to the Application Role.
+  DurationMinutes:
+    type: String
+    description: The Duration -in ISO-8601 format- of the Injection (Required).
+  TargetRoleName:
+    type: String
+    description: "The name (Friendly Name, not ARN) of the Target Role."
+  AutomationAssumeRole:
+    type: String
+    description: "The ARN of the SSMA Automation Role that allows the attachment of IAM Policies."
+
+#==================================================
+# Automation steps
+#==================================================
+
+mainSteps:
+- name: AttachDenyPolicy
+  action: aws:executeAwsApi
+  inputs:
+    Service: iam
+    Api: AttachRolePolicy
+    RoleName: "{{TargetRoleName}}"
+    PolicyArn: "{{AccessDenyPolicyArn}}"
+  description: Attach Deny Policy for Experiment Target
+  timeoutSeconds: 10
+
+- name: sleep
+  action: aws:sleep
+  onFailure: 'step:RollbackDetachPolicy'
+  onCancel: 'step:RollbackDetachPolicy'
+  inputs:
+    Duration: "{{ DurationMinutes }}"
+
+- name: RollbackDetachPolicy
+  action: "aws:executeAwsApi"
+  inputs:
+    Service: iam
+    Api: DetachRolePolicy
+    RoleName: "{{TargetRoleName}}"
+    PolicyArn: "{{AccessDenyPolicyArn}}"
+  description: End Experiment by Detaching Deny Policy from Application Role
+  timeoutSeconds: 10
+  isEnd: true

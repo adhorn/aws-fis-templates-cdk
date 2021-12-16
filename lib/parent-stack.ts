@@ -11,6 +11,7 @@ import { NaclExperiments } from './fis-experiments/nacl-faults/experiments-stack
 import { AsgExperiments } from './fis-experiments/asg-faults/experiments-stack';
 import { EksExperiments } from './fis-experiments/eks-faults/experiments-stack';
 import { SecGroupExperiments } from './fis-experiments/security-groups-faults/experiments-stack';
+import { IamAccessExperiments } from './fis-experiments/iam-access-faults/experiments-stack';
 
 export class FIS extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -31,6 +32,7 @@ export class FIS extends Stack {
     const AsgExperimentsStack = new AsgExperiments(this, 'AsgExp');
     const EksExperimentsStack = new EksExperiments(this, 'EksExp');
     const SecGroupExperimentsStack = new SecGroupExperiments(this, 'SecGroupExp');
+    const IamAccessExperimentsStack = new IamAccessExperiments(this, 'IamAccExp')
 
 
     Ec2InstancesExperimentStack.node.addDependency(IamRoleStack)
@@ -45,5 +47,8 @@ export class FIS extends Stack {
     EksExperimentsStack.node.addDependency(StopConditionStack)
     SecGroupExperimentsStack.node.addDependency(IamRoleStack)
     SecGroupExperimentsStack.node.addDependency(StopConditionStack)
+    IamAccessExperimentsStack.node.addDependency(IamRoleStack)
+    IamAccessExperimentsStack.node.addDependency(StopConditionStack)
+
   }
 }

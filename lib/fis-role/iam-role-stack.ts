@@ -2,7 +2,6 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { StackProps, Stack } from 'aws-cdk-lib';
 import { aws_iam as iam } from 'aws-cdk-lib';
-import { Condition } from 'aws-cdk-lib/aws-stepfunctions';
 
 export class FisRole extends Stack {
     constructor(scope: Construct, id: string, props?: StackProps) {
@@ -10,6 +9,9 @@ export class FisRole extends Stack {
 
         const importedFISLogGroupArn = cdk.Fn.importValue('fisLogGroupArn');
         const importedFISS3BucketArn = cdk.Fn.importValue('fisS3BucketArn');
+
+        const iamAccessFaultRole = this.node.tryGetContext('target_role_name');
+
 
         // FIS Role
         const fisrole = new iam.Role(this, 'fis-role', {
@@ -347,6 +349,81 @@ export class FisRole extends Stack {
             ]
         }))
 
+        // IAM role access faults 'ssma-iam-access-faults.yml'
+        const ssmaIamAccessRole = new iam.Role(this, 'ssma-iam-access-role', {
+            assumedBy: new iam.CompositePrincipal(
+                new iam.ServicePrincipal('iam.amazonaws.com'),
+                new iam.ServicePrincipal('ssm.amazonaws.com')
+            )
+        });
+
+        const ssmaIamAccessRoleAsCfn = ssmaIamAccessRole.node.defaultChild as iam.CfnRole;
+        ssmaIamAccessRoleAsCfn.addOverride(
+            'Properties.AssumeRolePolicyDocument.Statement.0.Principal.Service', [
+            'ssm.amazonaws.com', 'iam.amazonaws.com'
+        ]);
+
+        // GetRoleandPolicyDetails
+        ssmaIamAccessRole.addToPolicy(new iam.PolicyStatement({
+            resources: [
+                `arn:aws:iam::${this.account}:role/${iamAccessFaultRole}`,
+                `arn:aws:iam::${this.account}:policy/*`
+            ],
+            actions: [
+                'iam:GetRole',
+                'iam:GetPolicy', 
+                'iam:ListAttachedRolePolicies',
+                'iam:ListRoles'
+            ],
+        })
+        )
+
+        //AllowOnlyTargetResourcePolicies
+        ssmaIamAccessRole.addToPolicy(new iam.PolicyStatement({
+            resources: [
+                '*'
+            ],
+            actions: [
+                'iam:DetachRolePolicy',
+                'iam:AttachRolePolicy'
+            ],
+            conditions: {
+                ArnEquals:
+                {
+                    'iam:PolicyARN': [
+                        `arn:aws:iam::${this.account}:policy/*`
+                    ]
+                }
+            }
+        }))
+
+       // DenyAttachDetachAllRolesExceptApplicationRole
+       ssmaIamAccessRole.addToPolicy(new iam.PolicyStatement({
+            effect: iam.Effect.DENY,
+            actions: [
+                'iam:DetachRolePolicy',
+                'iam:AttachRolePolicy'
+            ],
+            notResources: [
+                `arn:aws:iam::${this.account}:role/${iamAccessFaultRole}`
+            ]
+        }))
+
+        // Additional Permissions for logging
+        ssmaIamAccessRole.addToPolicy(new iam.PolicyStatement({
+            resources: [
+                '*'
+            ],
+            actions: [
+                'logs:CreateLogStream',
+                'logs:CreateLogGroup',
+                'logs:PutLogEvents',
+                'logs:DescribeLogGroups',
+                'logs:DescribeLogStreams'
+            ]
+        }))
+
+
         // Outputs
         new cdk.CfnOutput(this, 'FISIamRoleArn', {
             value: fisrole.roleArn,
@@ -364,6 +441,12 @@ export class FisRole extends Stack {
             value: ssmaSecGroupRole.roleArn,
             description: 'The Arn of the IAM role',
             exportName: 'SSMASecGroupRoleArn',
+        });
+
+        new cdk.CfnOutput(this, 'ssmaIamAccessRoleArn', {
+            value: ssmaIamAccessRole.roleArn,
+            description: 'The Arn of the IAM role',
+            exportName: 'SSMAIamAccessRoleArn',
         });
     }
 }

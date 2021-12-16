@@ -4,6 +4,8 @@
     "vpc_id": "vpc-01316e63b948d889d",
     "asg_name": "Test-FIS-ASG",
     "eks_cluster_name": "test-cluster-chaos",
-    "security_group_id": "sg-022eb488dbd1655b3"
+    "security_group_id": "sg-022eb488dbd1655b3",
+    "target_role_name": "myrole",
+    "s3-bucket-to-deny": "mybucket/*"
   }
 }

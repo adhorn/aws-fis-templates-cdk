@@ -6,7 +6,6 @@ import { aws_ssm as ssm } from 'aws-cdk-lib';
 import fs = require('fs');
 import path = require('path');
 import yaml = require('js-yaml');
-import { CfnDocument } from 'aws-cdk-lib/aws-ssm';
 
 export class FisSsmDocs extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -24,7 +23,6 @@ export class FisSsmDocs extends Stack {
       content: yaml.load(nacl_content),
       documentType: 'Automation',
       documentFormat: 'YAML',
-      // name: 'NACL-FIS-Automation',
     });
 
     // Deploy the SSMA document to inject the security group faults
@@ -33,14 +31,31 @@ export class FisSsmDocs extends Stack {
       'documents/security-groups-faults.yml'
     );
 
-    const content = fs.readFileSync(secgroup_file).toString()
+    const secgroup_content = fs.readFileSync(secgroup_file).toString()
 
     const secgroup_cfnDocument = new ssm.CfnDocument(this, `SecGroup-SSM-Document`, {
-      content: yaml.load(content),
+      content: yaml.load(secgroup_content),
       documentType: 'Automation',
       documentFormat: 'YAML',
-      // name: 'SecurityGroup-FIS-Automation',
     });
+
+    // Deploy the SSMA document to inject the Iam Access faults
+    let iamaccess_file = path.join(
+      __dirname,
+      'documents/iam-access-faults.yml'
+    );
+
+    const iamaccess_content = fs.readFileSync(iamaccess_file).toString()
+
+    const iamaccess_cfnDocument = new ssm.CfnDocument(this, `IamAccess-SSM-Document`, {
+      content: yaml.load(iamaccess_content),
+      documentType: 'Automation',
+      documentFormat: 'YAML',
+    });
+
+
+  // Outputs
+
 
     new cdk.CfnOutput(this, 'NaclSSMADocName', {
       value: nacl_cfnDocument.ref!,
@@ -52,6 +67,12 @@ export class FisSsmDocs extends Stack {
       value: secgroup_cfnDocument.ref!,
       description: 'The name of the SSM Doc',
       exportName: 'SecGroupSSMADocName',
+    });
+
+    new cdk.CfnOutput(this, 'IamAccessSSMADocName', {
+      value: iamaccess_cfnDocument.ref!,
+      description: 'The name of the SSM Doc',
+      exportName: 'IamAccessSSMADocName',
     });
 
   }
