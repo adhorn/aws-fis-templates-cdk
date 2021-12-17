@@ -55,16 +55,24 @@ You can pick and choose which experiment group you want to deploy by simply comm
 - Including:
     - Changing a particular security group ingress rule (open SSH to 0.0.0.0/0) to verify remediation automation or monitoring. Possible remediation automation (https://github.com/adhorn/ssh-restricted)
 
+### [Iam Access faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/iam-accesss-faults)
+- Including:
+    - Denying Access to an S3 Resource from any application/services by targeting its Iam Role. (Courtesy of Rudolph Wagner)
+
+
 
 ### Configuring experiments:
-These sample FIS experiments uses default values for some of the parameters, such as a `vpc_id`, `asg_name` and `eks_cluster_name`. 
+These sample FIS experiments uses default values for some of the parameters, such as a `vpc_id`, `asg_name`, `eks_cluster_name`, etc. 
 Modify these in the file `cdk.json` before deploying to reflect the particularity of your own AWS environment.
 
 ```json  
-"context": {
+  "context": {
     "vpc_id": "vpc-01316e63b948d889d",
     "asg_name": "Test-FIS-ASG",
-    "eks_cluster_name": "test-cluster-chaos"
+    "eks_cluster_name": "test-cluster-chaos",
+    "security_group_id": "sg-022eb488dbd1655b3",
+    "target_role_name": "myrole",
+    "s3-bucket-to-deny": "mybucket/*"
   }
 ```
 
