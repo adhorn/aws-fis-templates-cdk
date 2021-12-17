@@ -53,7 +53,7 @@ You can pick and choose which experiment group you want to deploy by simply comm
 
 ### [Security Group faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/security-groups-faults)
 - Including:
-    - Changing a particular security group ingress rule (open SSH to 0.0.0.0/0) to verify remediation automation or monitoring. Courtesy of Jonathan Rudge). Possible remediation automation (https://github.com/adhorn/ssh-restricted)
+    - Changing a particular security group ingress rule (open SSH to 0.0.0.0/0) to verify remediation automation or monitoring. (Courtesy of Jonathan Rudge). Possible remediation automation (https://github.com/adhorn/ssh-restricted)
 
 ### [Iam Access faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/iam-accesss-faults)
 - Including:
