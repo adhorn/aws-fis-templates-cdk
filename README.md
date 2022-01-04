@@ -18,11 +18,11 @@ To use AWS FIS, you set up and run experiments that help you create the real-wor
 This CDK package will deplay a bunch of stacks.
 (1) the parent stack `FISPa`, (2) a stack for the IAM roles `FisRole`, (3) a stack for the stop-condition `StopCond` (CloudWatch alarm), (4) a stack for each FIS experiment group (`EC2API`, `AsgExp`, `EksExp`, `NaclExp`, `Ec2InstExp`), and (5) a stack dedicated to uploading SSM documents `FisSsmDocs`.
 
-You can pick and choose which experiment group you want to deploy by simply commenting out the respective stacks [here](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/parent-stack-ts)
+You can pick and choose which experiment group you want to deploy by simply commenting out the respective stacks [here](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/parent-stack.ts)
 
 ## 1 - The [IAM roles](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-role) required to run the experiments:
 - The AWS FIS role with all necessary policies as described [here](https://docs.aws.amazon.com/fis/latest/userguide/getting-started-iam-service-role.html)
-- SSM Automation document role for [faults using SSMA](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/documents).
+- SSM Automation document role for [faults using SSMA](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-upload-ssm-docs/documents).
 
 ## 2 - A set of [AWS FIS experiments](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments) to get you started: 
 
@@ -30,17 +30,17 @@ You can pick and choose which experiment group you want to deploy by simply comm
 - Including:
     - Stopping and restarting (after duration) all EC2 instances in a VPC, an AZ, and with particular tags.
     - Injecting CPU stress on random EC2 instances in a VPC
-    - Injecting latency on random EC2 instances all EC2 instances in a VPC, an AZ, and with particular tags.
+    - Injecting latency on requets to particular domain (e.g. www.amazon.com) to all EC2 instances in a VPC, an AZ, and with particular tags.
 
 ### [EC2 Control Plane faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/ec2-control-plane-faults)
 - Including:
-    - Injecting EC2 API Internal Error on the target IAM role
-    - Injecting EC2 API Throttle Error on the target IAM role
-    - Injecting EC2 API Unavailable Error on the target IAM role
+    - Injecting EC2 API Internal Error on a target IAM role
+    - Injecting EC2 API Throttle Error on a target IAM role
+    - Injecting EC2 API Unavailable Error on a target IAM role
 
 ### [Auto Scaling Group faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/asg-faults)
 - Including:
-    - Stopping and restarting (after duration) all EC2 instances of a random AZ in a particular auto scaling group.
+    - Terminate all EC2 instances of a random AZ in a particular auto scaling group.
     - Injecting CPU stress on All EC2 instances of a particular auto scaling group.
 
 ### [Network Access Control List faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/nacl-faults)
@@ -55,7 +55,7 @@ You can pick and choose which experiment group you want to deploy by simply comm
 - Including:
     - Changing a particular security group ingress rule (open SSH to 0.0.0.0/0) to verify remediation automation or monitoring. (Courtesy of Jonathan Rudge). Possible remediation automation (https://github.com/adhorn/ssh-restricted)
 
-### [Iam Access faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/iam-accesss-faults)
+### [Iam Access faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/iam-access-faults)
 - Including:
     - Denying Access to an S3 Resource from any application/services by targeting its Iam Role. (Courtesy of Rudolph Wagner)
 
@@ -115,8 +115,19 @@ Finally, you can deploy these FIS experiments using the CDK as follows:
 
 ```bash
 npm install
-cdk deploy
+cdk bootstrap
+cdk deploy --all
 ```
+During the creation of the different stacks, some will generate a security warning as follow: 
+
+````
+(NOTE: There may be security-related changes not in this list. See https://github.com/aws/aws-cdk/issues/1299)
+
+Do you wish to deploy these changes (y/n)?
+````
+
+Select `y` (yes).
+
 
 ### Other useful CDK commands:
 
