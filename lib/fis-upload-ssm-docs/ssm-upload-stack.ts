@@ -59,6 +59,26 @@ export class FisSsmDocs extends Stack {
       }
     );
 
+    // Deploy the SSMA document to modify a parameter store value
+    let parameterstore_file = path.join(
+      __dirname,
+      "documents/ssma-put-config-parameterstore.yml"
+    );
+
+    const parameterstore_content = fs
+      .readFileSync(parameterstore_file)
+      .toString();
+
+    const parameterstore_cfnDocument = new ssm.CfnDocument(
+      this,
+      `ParameterStore-SSM-Document`,
+      {
+        content: yaml.load(parameterstore_content),
+        documentType: "Automation",
+        documentFormat: "YAML",
+      }
+    );
+
     // SSMA Role for SSMA Documents fault
 
     const iamAccessFaultRole = this.node.tryGetContext("target_role_name");
@@ -187,32 +207,39 @@ export class FisSsmDocs extends Stack {
       })
     );
 
-    //AllowOnlyTargetResourcePolicies
-    ssmaIamAccessRole.addToPolicy(
-      new iam.PolicyStatement({
-        resources: ["*"],
-        actions: ["iam:DetachRolePolicy", "iam:AttachRolePolicy"],
-        conditions: {
-          ArnEquals: {
-            "iam:PolicyARN": [`arn:aws:iam::${this.account}:policy/*`],
-          },
-        },
-      })
+    // IAM role access faults 'ssma-put-config-parameterstore.yml'
+    const ssmParameterName = this.node.tryGetContext("ssm_parameter_name");
+
+    const ssmaPutParameterStoreRole = new iam.Role(
+      this,
+      "ssma-put-parameterstore-role",
+      {
+        assumedBy: new iam.CompositePrincipal(
+          new iam.ServicePrincipal("iam.amazonaws.com"),
+          new iam.ServicePrincipal("ssm.amazonaws.com")
+        ),
+      }
     );
 
-    // DenyAttachDetachAllRolesExceptApplicationRole
-    ssmaIamAccessRole.addToPolicy(
+    const ssmaPutParameterStoreRoleAsCfn = ssmaPutParameterStoreRole.node
+      .defaultChild as iam.CfnRole;
+    ssmaPutParameterStoreRoleAsCfn.addOverride(
+      "Properties.AssumeRolePolicyDocument.Statement.0.Principal.Service",
+      ["ssm.amazonaws.com", "iam.amazonaws.com"]
+    );
+
+    // GetRoleandPolicyDetails
+    ssmaPutParameterStoreRole.addToPolicy(
       new iam.PolicyStatement({
-        effect: iam.Effect.DENY,
-        actions: ["iam:DetachRolePolicy", "iam:AttachRolePolicy"],
-        notResources: [
-          `arn:aws:iam::${this.account}:role/${iamAccessFaultRole}`,
+        resources: [
+          `arn:aws:ssm:${this.region}:${this.account}:parameter/${ssmParameterName}`,
         ],
+        actions: ["ssm:PutParameter"],
       })
     );
 
     // Additional Permissions for logging
-    ssmaIamAccessRole.addToPolicy(
+    ssmaPutParameterStoreRole.addToPolicy(
       new iam.PolicyStatement({
         resources: ["*"],
         actions: [
@@ -244,6 +271,12 @@ export class FisSsmDocs extends Stack {
       exportName: "IamAccessSSMADocName",
     });
 
+    new cdk.CfnOutput(this, "PutParameterStoreSSMADocName", {
+      value: parameterstore_cfnDocument.ref!,
+      description: "The name of the SSM Doc",
+      exportName: "PutParameterStoreSSMADocName",
+    });
+
     new cdk.CfnOutput(this, "SSMANaclRoleArn", {
       value: ssmaNaclRole.roleArn,
       description: "The Arn of the IAM role",
@@ -260,6 +293,12 @@ export class FisSsmDocs extends Stack {
       value: ssmaIamAccessRole.roleArn,
       description: "The Arn of the IAM role",
       exportName: "SSMAIamAccessRoleArn",
+    });
+
+    new cdk.CfnOutput(this, "SSMAPutParameterStoreRoleArn", {
+      value: ssmaPutParameterStoreRole.roleArn,
+      description: "The Arn of the IAM role",
+      exportName: "SSMAPutParameterStoreRoleArn",
     });
   }
 }

@@ -6,6 +6,7 @@
     "eks_cluster_name": "test-cluster-chaos",
     "security_group_id": "sg-022eb488dbd1655b3",
     "target_role_name": "SSM-Chaos",
-    "s3-bucket-to-deny": "chaos-ssm-documents/*"
+    "s3-bucket-to-deny": "chaos-ssm-documents/*",
+    "ssm_parameter_name": "chaoslambda.config"
   }
 }
