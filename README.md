@@ -59,6 +59,9 @@ You can pick and choose which experiment group you want to deploy by simply comm
 - Including:
     - Denying Access to an S3 Resource from any application/services by targeting its Iam Role. (Courtesy of Rudolph Wagner)
 
+### [Lambda faults](https://github.com/adhorn/aws-fis-templates-cdk/tree/main/lib/fis-experiments/lambda-faults)
+- Including:
+    - Support for Lambda Python runtime via the [chaos-lambda library](https://github.com/adhorn/aws-lambda-chaos-injection). `chaos_lambda` is a small library injecting chaos into AWS Lambda. It offers simple Python decorators to inject latency, throw exception and modify the statuscode of Lambda functions.
 
 
 ### Configuring experiments:
@@ -71,8 +74,9 @@ Modify these in the file `cdk.json` before deploying to reflect the particularit
     "asg_name": "Test-FIS-ASG",
     "eks_cluster_name": "test-cluster-chaos",
     "security_group_id": "sg-022eb488dbd1655b3",
-    "target_role_name": "myrole",
-    "s3-bucket-to-deny": "mybucket/*"
+    "target_role_name": "target-role",
+    "s3-bucket-to-deny": "mybucket/*",
+    "ssm_parameter_name": "chaoslambda.config"
   }
 ```
 
