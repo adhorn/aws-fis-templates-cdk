@@ -1,0 +1,114 @@
+---
+#==================================================
+# SSM Automation Document / Runbook:
+# Defines the configuration as well as the
+# the steps to be run by SSM Automation
+#==================================================
+
+description: |
+  ### Document Name - ParameterStore-FIS-Automation
+
+  ## What does this document do?
+  This document stores a particular configuration to SSM Parameter store. 
+  https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html
+
+  ## Security Risk
+  Low: This is not a fault per se, but a configuration change.The change should be restricted by a strict IAM role that only allows changing a particular ParameterName. https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-access.html
+
+  ## Input Parameters
+  * AutomationAssumeRole: (Optional) The ARN of the role that allows Automation to perform the actions on your behalf.
+  * ParameterName: (Required) The name of the parameter to modify.
+  * ParameterValue: (Required) The value of the parameter.
+  * RollbackValue: (Required) The value of the parameter to roll-back to.
+  * Type: (Optional) The type of parameter. String, StringList, or SecureString. Default String.
+  * DurationMinutes: (Optional) ** Default 1 minute ** Maximum duration the fault can exist for.
+
+  ## Supports Rollback
+  Yes. The configuration is reverted to a .
+
+  ## Cancellation behaviour
+  The parameter value is rollback to RollbackValue.   
+
+  ## Output Parameters
+  This document has no outputs.
+
+  ## Minimum Permissions Required
+  * ssm:PutParameter
+
+  ## Additional Permissions for logging
+  * logs:CreateLogStream
+  * logs:CreateLogGroup
+  * logs:PutLogEvents
+  * logs:DescribeLogGroups
+  * logs:DescribeLogStreams
+
+schemaVersion: "0.3"
+
+#==================================================
+# Role assumed my the automation document / runbook
+#==================================================
+assumeRole: "{{ AutomationAssumeRole }}"
+
+#==================================================
+# SSM automation document parameters
+#==================================================
+
+parameters:
+  ParameterName:
+    type: String
+    description: "(Required) The name of the parameter to modify."
+  ParameterValue:
+    type: String
+    description: "(Required) The value of the parameter."
+  RollbackValue:
+    type: String
+    description: "(Required) The value of the parameter to roll-back to."
+  ParameterType:
+    type: String
+    description: "(Optional) The type of parameter. String, StringList, or SecureString."
+    default: "String"
+  DurationMinutes:
+    type: String
+    description: "The duration - in ISO-8601 format - until rollback. (Required)"
+    default: "PT1M"
+  AutomationAssumeRole:
+    type: String
+    description:
+      "(Optional) The ARN of the role that allows Automation to perform
+      the actions on your behalf."
+
+#==================================================
+# Automation steps
+#==================================================
+
+mainSteps:
+  - name: putParameter
+    description: Adding value to a particular parameter
+    onFailure: "step:rollback"
+    onCancel: "step:rollback"
+    action: "aws:executeAwsApi"
+    inputs:
+      Service: ssm
+      Api: PutParameter
+      Name: '{{ ParameterName }}'
+      Value: '{{ ParameterValue }}'
+      Type: '{{ ParameterType }}'
+      Overwrite: true
+
+  - name: sleep
+    action: aws:sleep
+    onFailure: "step:rollback"
+    onCancel: "step:rollback"
+    inputs:
+      Duration: "{{ DurationMinutes }}"
+
+  - name: rollback
+    description: Rolling back value to a particular parameter
+    action: "aws:executeAwsApi"
+    inputs:
+      Service: ssm
+      Api: PutParameter
+      Name: '{{ ParameterName }}'
+      Value: '{{ RollbackValue }}'
+      Type: '{{ ParameterType }}'
+      Overwrite: true

@@ -12,6 +12,7 @@ import { AsgExperiments } from "./fis-experiments/asg-faults/experiments-stack";
 import { EksExperiments } from "./fis-experiments/eks-faults/experiments-stack";
 import { SecGroupExperiments } from "./fis-experiments/security-groups-faults/experiments-stack";
 import { IamAccessExperiments } from "./fis-experiments/iam-access-faults/experiments-stack";
+import { LambdaChaosExperiments } from "./fis-experiments/lambda-faults/experiments-stack";
 
 export class FIS extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -45,6 +46,11 @@ export class FIS extends Stack {
       this,
       "IamAccExp"
     );
+    const LambdaFaultExperimentStack = new LambdaChaosExperiments(
+      this,
+      'LambdaExp'
+    )
+
 
     Ec2InstancesExperimentStack.node.addDependency(IamRoleStack);
     Ec2InstancesExperimentStack.node.addDependency(StopConditionStack);
@@ -60,5 +66,7 @@ export class FIS extends Stack {
     SecGroupExperimentsStack.node.addDependency(StopConditionStack);
     IamAccessExperimentsStack.node.addDependency(IamRoleStack);
     IamAccessExperimentsStack.node.addDependency(StopConditionStack);
+    LambdaFaultExperimentStack.addDependency(IamRoleStack);
+    LambdaFaultExperimentStack.addDependency(StopConditionStack);    
   }
 }
