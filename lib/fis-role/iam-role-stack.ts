@@ -139,6 +139,7 @@ export class FisRole extends Stack {
           "ec2:DescribeInstances",
           "ssm:ListCommands",
           "ssm:CancelCommand",
+          "ssm:PutParameter"
         ],
       })
     );

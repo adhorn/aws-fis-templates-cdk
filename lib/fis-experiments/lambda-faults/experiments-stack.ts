@@ -34,11 +34,22 @@ export class LambdaChaosExperiments extends Stack {
           DurationMinutes: "PT1M",
           AutomationAssumeRole: importedSSMAPutParameterStoreRoleArn.toString(),
           ParameterName: importedParameterName.toString(),
-          ParameterValue: "{ \"delay\": 500, \"is_enabled\": true, \"error_code\": 404, \"exception_msg\": \"This is chaos\", \"rate\": 1, \"fault_type\": \"exception\"}",
-          RollbackValue: "{ \"delay\": 500, \"is_enabled\": false, \"error_code\": 404, \"exception_msg\": \"This is chaos\", \"rate\": 1, \"fault_type\": \"exception\"}"
+          ParameterValue: '{ "delay": 1000, "is_enabled": true, "error_code": 404, "exception_msg": "This is chaos", "rate": 1, "fault_type": "exception"}',
+          RollbackValue: '{ "delay": 1000, "is_enabled": false, "error_code": 404, "exception_msg": "This is chaos", "rate": 1, "fault_type": "exception"}'
         }),
         maxDuration: "PT5M",
       },
+    };
+
+    const putParameter = {
+      actionId: "aws:ssm:put-parameter",
+      description: "Put config into parameter store to enable Lambda Chaos.",
+      parameters: {
+          duration: "PT10M",
+          name: importedParameterName.toString(),
+          value: '{ "delay": 1000, "is_enabled": true, "error_code": 404, "exception_msg": "This is chaos", "rate": 1, "fault_type": "exception"}',
+          rollbackValue: '{ "delay": 1000, "is_enabled": false, "error_code": 404, "exception_msg": "This is chaos", "rate": 1, "fault_type": "exception"}'
+        }
     };
 
     // Experiments
@@ -59,7 +70,7 @@ export class LambdaChaosExperiments extends Stack {
           Stackname: this.stackName,
         },
         actions: {
-          ssmaAction: startAutomation,
+          ssmaAction: putParameter,
         },
         targets: {},
       }
