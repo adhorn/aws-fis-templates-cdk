@@ -13,9 +13,9 @@ export class FisSsmDocs extends Stack {
     super(scope, id, props);
 
     // Deploy the SSMA document to inject the Nacl faults
-    let nacl_file = path.join(__dirname, "documents/ssma-nacl-faults.yml");
+    let file = path.join(__dirname, "documents/ssma-nacl-faults.yml");
 
-    const nacl_content = fs.readFileSync(nacl_file).toString();
+    const nacl_content = fs.readFileSync(file, "utf8");
 
     const nacl_cfnDocument = new ssm.CfnDocument(this, `Nacl-SSM-Document`, {
       content: yaml.load(nacl_content),
@@ -24,12 +24,9 @@ export class FisSsmDocs extends Stack {
     });
 
     // Deploy the SSMA document to inject the security group faults
-    let secgroup_file = path.join(
-      __dirname,
-      "documents/security-groups-faults.yml"
-    );
+    file = path.join(__dirname, "documents/security-groups-faults.yml");
 
-    const secgroup_content = fs.readFileSync(secgroup_file).toString();
+    const secgroup_content = fs.readFileSync(file, "utf8");
 
     const secgroup_cfnDocument = new ssm.CfnDocument(
       this,
@@ -42,12 +39,9 @@ export class FisSsmDocs extends Stack {
     );
 
     // Deploy the SSMA document to inject the Iam Access faults
-    let iamaccess_file = path.join(
-      __dirname,
-      "documents/iam-access-faults.yml"
-    );
+    file = path.join(__dirname, "documents/iam-access-faults.yml");
 
-    const iamaccess_content = fs.readFileSync(iamaccess_file).toString();
+    const iamaccess_content = fs.readFileSync(file, "utf8");
 
     const iamaccess_cfnDocument = new ssm.CfnDocument(
       this,
@@ -60,14 +54,9 @@ export class FisSsmDocs extends Stack {
     );
 
     // Deploy the SSMA document to modify a parameter store value
-    let parameterstore_file = path.join(
-      __dirname,
-      "documents/ssma-put-config-parameterstore.yml"
-    );
+    file = path.join(__dirname, "documents/ssma-put-config-parameterstore.yml");
 
-    const parameterstore_content = fs
-      .readFileSync(parameterstore_file)
-      .toString();
+    const parameterstore_content = fs.readFileSync(file, "utf8");
 
     const parameterstore_cfnDocument = new ssm.CfnDocument(
       this,
